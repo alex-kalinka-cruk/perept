@@ -19,5 +19,8 @@ estPerf <- function(n, N, delta){
   },
   error = function(e) stop(paste("'estPerf' error:",e))
   )
+  # Sanity check result.
+  if(res < 0) stop(paste("Negative rate returned:",res))
+  if(res > 1) stop(paste("Rate exceeds 1:",res))
   return(res)
 }

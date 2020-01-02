@@ -10,5 +10,8 @@
 estPrev <- function(delta){
   tryCatch(estPrev <- sum(delta)/length(delta),
            error = function(e) stop(paste("'estPrev' error:",e)))
+  # Sanity check result.
+  if(estPrev < 0) stop(paste("Negative prevalence returned:",estPrev))
+  if(estPrev > 1) stop(paste("Prevalence exceeds 1:",estPrev))
   return(estPrev)
 }
