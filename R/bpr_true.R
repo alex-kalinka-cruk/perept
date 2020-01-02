@@ -18,8 +18,8 @@
 bpr_true <- function(n, N, expected, theta_0, theta_1, p00, p11, p01, p10){
   if(!expected %in% 0:1) stop("expected result can only be 0 (negative) or 1 (positive)")
   if(N < n) stop("N must be greater than or equal to n")
-  n_opp <- N-n
   tryCatch({
+    n_opp <- N-n
     if(expected == 0){
       num <- theta_0 * (p00^n) * (p10^n_opp)
       denom <- num + (theta_1 * (p01^n) * (p11^n_opp))
@@ -29,7 +29,7 @@ bpr_true <- function(n, N, expected, theta_0, theta_1, p00, p11, p01, p10){
     }
     res <- num/denom
   },
-  error = function(e) stop(patse("'bpr_true' error:",e))
+  error = function(e) stop(paste("'bpr_true' error:",e))
   )
   # Sanity check result.
   if(res < 0) stop(paste("Negative posterior probability returned:",res))
