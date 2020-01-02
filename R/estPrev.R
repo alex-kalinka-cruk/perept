@@ -4,7 +4,7 @@
 #'
 #' @param delta Vector of real numbers giving the probability that a given gene has the expected result (either negative or positive).
 #'
-#' @result A real number giving the estimated prevalence of a given result (either negative or positive) for the set of subjects.
+#' @return A real number giving the estimated prevalence of a given result (either negative or positive) for the set of subjects.
 #' @examples \dontrun{estPrev(delta)}
 #' @export
 estPrev <- function(delta){

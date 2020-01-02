@@ -10,3 +10,6 @@ Description: Implementation of an EM algorithm to determine false-positive and f
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    testthat
+RoxygenNote: 7.0.2

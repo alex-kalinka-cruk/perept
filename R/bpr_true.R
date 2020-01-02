@@ -12,7 +12,7 @@
 #' @param p01 A real number (in range [0,1]) giving the probability that a test is negative given that the true result is positive (false-negative rate) for a set of test subjects.
 #' @param p10 A real number (in range [0,1]) giving the probability that a test is positive given that the true result is negative (false-positive rate) for a set of test subjects.
 #'
-#' @result A real number giving the Bayesian posterior probability that the test subject has a given result.
+#' @return A real number giving the Bayesian posterior probability that the test subject has a given result.
 #' @examples
 #' @export
 bpr_true <- function(n, N, expected, theta_0, theta_1, p00, p11, p01, p10){
