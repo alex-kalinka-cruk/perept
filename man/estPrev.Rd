@@ -18,3 +18,6 @@ Estimate the prevalence of a particular result for a set of test subjects when t
 \examples{
 \dontrun{estPrev(delta)}
 }
+\references{
+Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
+}

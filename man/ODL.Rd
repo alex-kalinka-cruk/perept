@@ -29,3 +29,6 @@ A real value giving the `log(ODL)`.
 \description{
 Calculate the logarithm of the Observed Data Likelihood (ODL) when true responses are unknown and repeated tests are performed on a set of test subjects (e.g. genes).
 }
+\references{
+Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
+}

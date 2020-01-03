@@ -31,3 +31,6 @@ A real number giving the Bayesian posterior probability that the test subject ha
 \description{
 Calculates a Bayesian posterior probability that a given test subject (e.g. a gene) has a given expected result (either negative or positive).
 }
+\references{
+Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
+}

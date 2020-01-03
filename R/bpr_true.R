@@ -13,6 +13,7 @@
 #' @param p10 A real number (in range [0,1]) giving the probability that a test is positive given that the true result is negative (false-positive rate) for a set of test subjects.
 #'
 #' @return A real number giving the Bayesian posterior probability that the test subject has a given result.
+#' @references Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
 #' @examples
 #' @export
 bpr_true <- function(n, N, expected, theta_0, theta_1, p00, p11, p01, p10){

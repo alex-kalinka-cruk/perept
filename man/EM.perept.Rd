@@ -18,8 +18,11 @@ EM.perept(n_pos, N, delta_pos = NULL, maxiter = 1e+05, tol = 1e-06)
 \item{tol}{A real number specifying the maximum ODL difference between successive steps of the EM algorithm below which convergence occurs. Defaults to 1e-6.}
 }
 \value{
-A list with the following elements:
+An object of class `perept`, which is a list with the following elements:
 }
 \description{
 Expectation Maximisation (EM) algorithm to estimate false-positive and false-negative rates of a test when the true response is unknown and repeated tests are available for a set of test subjects (e.g. genes).
+}
+\references{
+Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
 }
