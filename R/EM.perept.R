@@ -4,18 +4,22 @@
 #'
 #' @param n_pos Vector of integers specifying the number of tests that produced a positive result for each subject.
 #' @param N Integer value giving the total number of repeated tests per subject.
-#' @param delta_pos A vector of real numbers (in the range [0,1]) giving initial estimates of the probability of each subject being positive - must be the same length as `n_pos` (using `n_pos`/`N` works well).
+#' @param delta_pos A vector of real numbers (in the range [0,1]) giving initial estimates of the probability of each subject being positive - must be the same length as `n_pos`. If `NULL`, then `n_pos`/`N` is used. Defaults to `NULL`.
 #' @param maxiter A positive integer specifying the maximum allowable number of iterations without convergence occurring. Defaults to 1e5.
 #' @param tol A real number specifying the maximum ODL difference between successive steps of the EM algorithm below which convergence occurs. Defaults to 1e-6.
 #'
 #' @return A list with the following elements:
 #' @examples
 #' @export
-EM.perept <- function(n_pos, N, delta_pos, maxiter = 1e5, tol = 1e-6){
+EM.perept <- function(n_pos, N, delta_pos = NULL, maxiter = 1e5, tol = 1e-6){
   if(maxiter <= 1) stop("please specify a 'maxiter' value greater than 1")
   if(tol >= 100) stop("please specify a 'tol' value less than 100")
-  if(length(n_pos) != length(delta_pos)) stop("'n_pos' and 'delta_pos' must be the same length")
   if(any(N < n_pos)) stop("'N' must be greater than or equal to 'n_pos'")
+  if(!is.null(delta_pos)){
+    if(length(n_pos) != length(delta_pos)) stop("'n_pos' and 'delta_pos' must be the same length")
+  }else{
+    delta_pos <- n_pos/N
+  }
   if(any(delta_pos < 0) || any(delta_pos > 1)) stop("'delta_pos' must be in the range [0,1]")
   i <- 1
   odl_diff <- 100

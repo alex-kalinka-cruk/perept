@@ -4,14 +4,14 @@
 \alias{EM.perept}
 \title{EM.perept}
 \usage{
-EM.perept(n_pos, N, delta_pos, maxiter = 1e+05, tol = 1e-06)
+EM.perept(n_pos, N, delta_pos = NULL, maxiter = 1e+05, tol = 1e-06)
 }
 \arguments{
 \item{n_pos}{Vector of integers specifying the number of tests that produced a positive result for each subject.}
 
 \item{N}{Integer value giving the total number of repeated tests per subject.}
 
-\item{delta_pos}{A vector of real numbers (in the range [0,1]) giving initial estimates of the probability of each subject being positive - must be the same length as `n_pos` (using `n_pos`/`N` works well).}
+\item{delta_pos}{A vector of real numbers (in the range [0,1]) giving initial estimates of the probability of each subject being positive - must be the same length as `n_pos`. If `NULL`, then `n_pos`/`N` is used. Defaults to `NULL`.}
 
 \item{maxiter}{A positive integer specifying the maximum allowable number of iterations without convergence occurring. Defaults to 1e5.}
 

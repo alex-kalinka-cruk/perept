@@ -11,7 +11,7 @@ wong_etal.n_neg <- c(rep(0,23911),rep(1,340),rep(2,50),rep(3,46),rep(4,15),rep(5
 # Compare against JW2007 re-analysis of Wetal2007's data.
 testthat::test_that("we get the same result as JW2007 using Wetal2007", {
   # Run EM algorithm on Wetal2007 data.
-  res <- EM.perept(wong_etal.n_neg, 6, wong_etal.n_neg/6)
+  res <- EM.perept(wong_etal.n_neg, 6)
   # Tolerance set to number of decimal places reported in JW2007.
   expect_equal(0.006299, res$prevalence$theta_1, tol=1e-6)
   expect_equal(0.002283, res$performance$p10, tol=1e-6)
