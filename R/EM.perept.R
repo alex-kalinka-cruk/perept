@@ -12,11 +12,11 @@
 #' @examples
 #' @export
 EM.perept <- function(n_pos, N, delta_pos, maxiter = 1e5, tol = 1e-6){
-  if(maxiter <= 1) stop("please specify a maxiter value greater than 1")
-  if(tol >= 100) stop("please specify a tol value less than 100")
-  if(length(n_pos) != length(delta_pos)) stop("n_pos and delta_pos must be the same length")
-  if(any(N < n_pos)) stop("N must be greater than or equal to n_pos")
-  if(any(delta_pos < 0) || any(delta_pos > 1)) stop("delta_pos must be in the range [0,1]")
+  if(maxiter <= 1) stop("please specify a 'maxiter' value greater than 1")
+  if(tol >= 100) stop("please specify a 'tol' value less than 100")
+  if(length(n_pos) != length(delta_pos)) stop("'n_pos' and 'delta_pos' must be the same length")
+  if(any(N < n_pos)) stop("'N' must be greater than or equal to 'n_pos'")
+  if(any(delta_pos < 0) || any(delta_pos > 1)) stop("'delta_pos' must be in the range [0,1]")
   i <- 1
   odl_diff <- 100
   odl_last <- -1e6
@@ -27,19 +27,19 @@ EM.perept <- function(n_pos, N, delta_pos, maxiter = 1e5, tol = 1e-6){
     delta_neg <- 1-delta_pos
     while(i < maxiter && odl_diff > tol){
       # 1. Performance estimates.
-      p00 <- estPerf(n_neg, N, delta_neg)
-      p11 <- estPerf(n_pos, N, delta_pos)
-      p01 <- estPerf(n_neg, N, delta_pos)
-      p10 <- estPerf(n_pos, N, delta_neg)
+      p00 <- perept::estPerf(n_neg, N, delta_neg)
+      p11 <- perept::estPerf(n_pos, N, delta_pos)
+      p01 <- perept::estPerf(n_neg, N, delta_pos)
+      p10 <- perept::estPerf(n_pos, N, delta_neg)
       # 2. Prevalence estimates.
-      theta_0 <- estPrev(delta_neg)
-      theta_1 <- estPrev(delta_pos)
+      theta_0 <- perept::estPrev(delta_neg)
+      theta_1 <- perept::estPrev(delta_pos)
       # 3. Update individual subject classification probabilities.
-      delta_neg <- sapply(n_neg, bpr_true,
+      delta_neg <- sapply(n_neg, perept::bpr_true,
                           N, 0, theta_0, theta_1, p00, p11, p01, p10)
       delta_pos <- 1-delta_neg
       # 4. ODL estimate.
-      odl <- ODL(n_neg, N, theta_0, theta_1, p00, p11, p01, p10)
+      odl <- perept::ODL(n_neg, N, theta_0, theta_1, p00, p11, p01, p10)
       odl_list <- append(odl_list, odl)
       odl_diff <- odl - odl_last
       odl_last <- odl
@@ -52,5 +52,6 @@ EM.perept <- function(n_pos, N, delta_pos, maxiter = 1e5, tol = 1e-6){
   ret$prevalence <- list(theta_0 = theta_0, theta_1 = theta_1)
   ret$delta <- list(delta_neg = delta_neg, delta_pos = delta_pos)
   ret$ODL <- odl_list
+  class(ret) <- "perept"
   return(ret)
 }
