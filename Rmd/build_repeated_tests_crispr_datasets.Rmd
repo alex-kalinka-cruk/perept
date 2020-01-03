@@ -41,13 +41,26 @@ The HT29 data is not ideal as they are essentiality screens and the effect sizes
 
 While the drug screens (2 and 3) are ideal screen types, they have very few replicates and will require sub-sampling of sgRNAs to create pseudo-replicates (respecting screen and sample origins). This is not ideal as it creates dependencies between the tests.
 
-# HT29 essentiality screens by Francesco Iorio (Sanger)
+# HT29 essentiality screens provided by Francesco Iorio (Sanger)
 
-One downside is that only two sets of plasmid counts (named `ERS717283.plasmid` and `CRISPR_C6596666.sample`) are used throughout the screens which undermines the independence between different tests. The other is that the Yusa v1 sgRNA library has been used.
+One downside is that only two sets of plasmid counts (named `ERS717283.plasmid` and `CRISPR_C6596666.sample`) are used throughout the screens which undermines the independence between different tests. The other is that the Yusa v1 sgRNA library has been used, instead of v2.
+
+```{r}
+path_ht29 <- file.path(data_root,"ht29-francesco-iorio","01_Counts assembled")
+# Assemble the sgRNAs, genes, and the two plasmid count replicates.
+c903 <- read.table(file.path(path_ht29,"HT29_c903.tsv"), stringsAsFactors = F, header=T)
+c905 <- read.table(file.path(path_ht29,"HT29_c905.tsv"), stringsAsFactors = F, header=T)
+common <- data.frame(c903[,1:3],c905$CRISPR_C6596666.sample)
+colnames(common)[3:4] <- c("plasmid.1","plasmid.2")
+c904 <- read.table(file.path(path_ht29,"HT29_c904.tsv"), stringsAsFactors = F, header=T)
+c906 <- read.table(file.path(path_ht29,"HT29_c906.tsv"), stringsAsFactors = F, header=T)
+c907 <- read.table(file.path(path_ht29,"HT29_c907.tsv"), stringsAsFactors = F, header=T)
+c908 <- read.table(file.path(path_ht29,"HT29_c908.tsv"), stringsAsFactors = F, header=T)
+```
 
 ```{r}
 
-```
 
+```
 
 
