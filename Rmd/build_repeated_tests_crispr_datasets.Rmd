@@ -1,0 +1,53 @@
+---
+title: "Building repeated-tests CRISPR datasets"
+author: "Alex Kalinka"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    depth: 3
+    highlight: tango
+    number_sections: true
+    theme: spacelab
+    toc: true
+    toc_float: true
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+options(warn=-1)
+suppressMessages(library(knitr))
+suppressMessages(library(tidyr))
+suppressMessages(library(magrittr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+
+data_root <- "~/data/az_cruk"
+
+```
+
+# Overview
+
+The overall goal is to develop a set of standard repeated-tests CRISPR datasets that can be used in conjunction with the Maximum Likelihood estimates of false-positive and false-negative rates (implemented in the R package `perept`) to compare the performance of algorithm changes for the AZ-CRUK CRISPR analysis pipeline.
+
+Three data sources will be used:
+
+1. HT29 essentiality screens performed at Sanger.
+2. EGFR treatment-control screens performed at AZ.
+3. Veneto... treatment-control screen.
+
+The HT29 data is not ideal as they are essentiality screens and the effect sizes will be large and not so relevant to drug treatment screens. However, there are a lot of replicates potentially providing power for discriminating the performance of different algorithms.
+
+While the drug screens (2 and 3) are ideal screen types, they have very few replicates and will require sub-sampling of sgRNAs to create pseudo-replicates (respecting screen and sample origins). This is not ideal as it creates dependencies between the tests.
+
+# HT29 essentiality screens by Francesco Iorio (Sanger)
+
+One downside is that only two sets of plasmid counts (named `ERS717283.plasmid` and `CRISPR_C6596666.sample`) are used throughout the screens which undermines the independence between different tests. The other is that the Yusa v1 sgRNA library has been used.
+
+```{r}
+
+```
+
+
+
