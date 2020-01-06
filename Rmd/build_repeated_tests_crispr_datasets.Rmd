@@ -11,6 +11,9 @@ output:
     theme: spacelab
     toc: true
     toc_float: true
+params:
+  out: "~/data/az_cruk/perept_data/ht29-iorio"
+  fdr: !r 0.1
 ---
 
 # Setup
@@ -43,23 +46,112 @@ While the drug screens (2 and 3) are ideal screen types, they have very few repl
 
 # HT29 essentiality screens provided by Francesco Iorio (Sanger)
 
-One downside is that only two sets of plasmid counts (named `ERS717283.plasmid` and `CRISPR_C6596666.sample`) are used throughout the screens which undermines the independence between different tests. The other is that the Yusa v1 sgRNA library has been used, instead of v2.
+**Approach**
+
+* The data will be broken up into pairs of replicates since this is the structure of the data that will be used in the in-house CRISPR screens.
+* Replicate pairs will always be taken from the same screen to respect the original structure of the data.
+* There will be no overlaps between replicate pairs except in terms of the two plasmid count samples.
+
+**Caveats**
+
+* Only two sets of plasmid counts (named `ERS717283.plasmid` and `CRISPR_C6596666.sample`) are used throughout the screens which undermines the independence between different tests.
+
+## Creating datasets
 
 ```{r}
 path_ht29 <- file.path(data_root,"ht29-francesco-iorio","01_Counts assembled")
 # Assemble the sgRNAs, genes, and the two plasmid count replicates.
 c903 <- read.table(file.path(path_ht29,"HT29_c903.tsv"), stringsAsFactors = F, header=T)
-c905 <- read.table(file.path(path_ht29,"HT29_c905.tsv"), stringsAsFactors = F, header=T)
-common <- data.frame(c903[,1:3],c905$CRISPR_C6596666.sample)
+c905 <- read.table(file.path(path_ht29,"HT29_c905.tsv"), stringsAsFactors = F, header=T) %>%
+  filter(sgRNA %in% c903$sgRNA)
+common <- data.frame(c903[,1:3], c905$CRISPR_C6596666.sample)
 colnames(common)[3:4] <- c("plasmid.1","plasmid.2")
 c904 <- read.table(file.path(path_ht29,"HT29_c904.tsv"), stringsAsFactors = F, header=T)
-c906 <- read.table(file.path(path_ht29,"HT29_c906.tsv"), stringsAsFactors = F, header=T)
-c907 <- read.table(file.path(path_ht29,"HT29_c907.tsv"), stringsAsFactors = F, header=T)
-c908 <- read.table(file.path(path_ht29,"HT29_c908.tsv"), stringsAsFactors = F, header=T)
+c906 <- read.table(file.path(path_ht29,"HT29_c906.tsv"), stringsAsFactors = F, header=T) %>%
+  filter(sgRNA %in% c903$sgRNA)
+c907 <- read.table(file.path(path_ht29,"HT29_c907.tsv"), stringsAsFactors = F, header=T) %>%
+  filter(sgRNA %in% c903$sgRNA)
+c908 <- read.table(file.path(path_ht29,"HT29_c908.tsv"), stringsAsFactors = F, header=T) %>%
+  filter(sgRNA %in% c903$sgRNA)
 ```
 
 ```{r}
+# c903 - 6 replicates, break into 3 non-overlapping sets of 2 replicates.
+write.table(data.frame(common,c903[,4:5]), file = file.path(params$out,"ht29-perept-data-c903-1.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c903[,6:7]), file = file.path(params$out,"ht29-perept-data-c903-2.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c903[,8:9]), file = file.path(params$out,"ht29-perept-data-c903-3.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c904 - 3 replicates, break into 2.
+write.table(data.frame(common,c904[,4:5]), file = file.path(params$out,"ht29-perept-data-c904-1.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c905 - 9 replicates, break into 4 sets of 2 replicates.
+write.table(data.frame(common,c905[,4:5]), file = file.path(params$out,"ht29-perept-data-c905-1.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c905[,6:7]), file = file.path(params$out,"ht29-perept-data-c905-2.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c905[,8:9]), file = file.path(params$out,"ht29-perept-data-c905-3.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c905[,10:11]), file = file.path(params$out,"ht29-perept-data-c905-4.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c906 - 6 replicates, break into 3 sets of 2 replicates.
+write.table(data.frame(common,c906[,4:5]), file = file.path(params$out,"ht29-perept-data-c906-1.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c906[,6:7]), file = file.path(params$out,"ht29-perept-data-c906-2.tsv"),
+            row.names = F, quote=F, sep="\t")
+write.table(data.frame(common,c906[,8:9]), file = file.path(params$out,"ht29-perept-data-c906-3.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c907 - 3 replicates, break into 2.
+write.table(data.frame(common,c907[,4:5]), file = file.path(params$out,"ht29-perept-data-c907-1.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c908 - 3 replicates, break into 2.
+write.table(data.frame(common,c908[,4:5]), file = file.path(params$out,"ht29-perept-data-c908-1.tsv"),
+            row.names = F, quote=F, sep="\t")
 
+```
+
+## Creating algorithm-specific gene matrices
+
+* Use an FDR of 0.1 to define significant genes.
+
+### Mageck
+
+```{r}
+# Read in Mageck 'gene_summary' files (ranked by negative hits) and process.
+process_mageck_output <- function(file_list){
+  ret <- NULL
+  for(file in file_list){
+    screen_name <- gsub("^(.*?)\\.gene_summ.*$","\\1",tail(unlist(strsplit(file,"/")),1))
+    ts <- read.table(file, header=T, stringsAsFactors = F) %>%
+      arrange(id) %>%
+      mutate(neg_hit = ifelse(neg.fdr < params$fdr,1,0),
+             pos_hit = ifelse(pos.fdr < params$fdr,1,0)) %>%
+      rowwise() %>%
+      mutate(neg_or_pos_hit = ifelse((neg_hit==1 || pos_hit==1),1,0)) %>%
+      ungroup() %>%
+      select(id,neg_hit,pos_hit,neg_or_pos_hit)
+    if(is.null(ret)){
+      ret <- ts
+    }else{
+      ret <- cbind(ret, ts %>% select(-id))
+    }
+    # Rename columns.
+    ret %<>%
+      rename(!!paste(screen_name,".neg_hit",sep="") := neg_hit, 
+             !!paste(screen_name,".pos_hit",sep="") := pos_hit, 
+             !!paste(screen_name,".neg_or_pos_hit",sep="") := neg_or_pos_hit)
+  }
+  return(ret)
+}
+
+files <- list.files(file.path(params$out,"output","mageck"), pattern = "gene_summary.txt$", full.names = T)
+ht29.mageck_hit_matrix <- process_mageck_output(files)
+
+ht29.mageck_neg <- ht29.mageck_hit_matrix %>%
+  select(id, contains("neg_hit")) %>%
+  rowwise() %>%
+  mutate_at()
 
 ```
 
