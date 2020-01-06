@@ -8,7 +8,7 @@
 #' @param maxiter A positive integer specifying the maximum allowable number of iterations without convergence occurring. Defaults to 1e5.
 #' @param tol A real number specifying the maximum ODL difference between successive steps of the EM algorithm below which convergence occurs. Defaults to 1e-6.
 #'
-#' @return An object of class `perept`, which is a list with the following elements:
+#' @return An object of class `EM.perept`, which is a list with the following elements:
 #' @references Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.
 #' @examples
 #' @export
@@ -44,9 +44,9 @@ EM.perept <- function(n_pos, N, delta_pos = NULL, maxiter = 1e5, tol = 1e-6){
                           N, 0, theta_0, theta_1, p00, p11, p01, p10)
       delta_pos <- 1-delta_neg
       # 4. ODL estimate.
-      odl <- perept::ODL(n_neg, N, theta_0, theta_1, p00, p11, p01, p10)
+      odl <- perept::ODL(n_pos, N, theta_0, theta_1, p00, p11, p01, p10)
       odl_list <- append(odl_list, odl)
-      odl_diff <- odl - odl_last
+      odl_diff <- abs(odl - odl_last)
       odl_last <- odl
       i <- i+1
     }
@@ -57,6 +57,6 @@ EM.perept <- function(n_pos, N, delta_pos = NULL, maxiter = 1e5, tol = 1e-6){
   ret$prevalence <- list(theta_0 = theta_0, theta_1 = theta_1)
   ret$delta <- list(delta_neg = delta_neg, delta_pos = delta_pos)
   ret$ODL <- odl_list
-  class(ret) <- "perept"
+  class(ret) <- "EM.perept"
   return(ret)
 }

@@ -58,7 +58,7 @@ While the drug screens (2 and 3) are ideal screen types, they have very few repl
 
 ## Creating datasets
 
-```{r}
+```{r,eval=F}
 path_ht29 <- file.path(data_root,"ht29-francesco-iorio","01_Counts assembled")
 # Assemble the sgRNAs, genes, and the two plasmid count replicates.
 c903 <- read.table(file.path(path_ht29,"HT29_c903.tsv"), stringsAsFactors = F, header=T)
@@ -75,7 +75,7 @@ c908 <- read.table(file.path(path_ht29,"HT29_c908.tsv"), stringsAsFactors = F, h
   filter(sgRNA %in% c903$sgRNA)
 ```
 
-```{r}
+```{r,eval=F}
 # c903 - 6 replicates, break into 3 non-overlapping sets of 2 replicates.
 write.table(data.frame(common,c903[,4:5]), file = file.path(params$out,"ht29-perept-data-c903-1.tsv"),
             row.names = F, quote=F, sep="\t")
@@ -150,8 +150,7 @@ ht29.mageck_hit_matrix <- process_mageck_output(files)
 
 ht29.mageck_neg <- ht29.mageck_hit_matrix %>%
   select(id, contains("neg_hit")) %>%
-  rowwise() %>%
-  mutate_at()
+  mutate(pos_count = rowSums(.[2:13]))
 
 ```
 

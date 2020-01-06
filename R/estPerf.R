@@ -4,7 +4,7 @@
 #'
 #' @param n Vector of integers specifying the number of tests that produced a particular result (either negative or positive) for each subject.
 #' @param N Integer value giving the total number of repeated tests per subject.
-#' @param delta Vector of real numbers giving the probability that a given gene has the expected result (either negative or positive) - must be the same length as `n`.
+#' @param delta Vector of real numbers giving the probability that a given subject has the expected result (either negative or positive) - must be the same length as `n`.
 #'
 #' @return The estimated performance, a real value in the range [0,1].
 #' @references Jakobsdottir and Weeks (2007). Estimating prevalence, false-positive rate, and false-negative rate with use of repeated testing when true responses are unknown. Am J Hum Genet 81:1111-1113.

@@ -11,7 +11,7 @@ estPerf(n, N, delta)
 
 \item{N}{Integer value giving the total number of repeated tests per subject.}
 
-\item{delta}{Vector of real numbers giving the probability that a given gene has the expected result (either negative or positive) - must be the same length as `n`.}
+\item{delta}{Vector of real numbers giving the probability that a given subject has the expected result (either negative or positive) - must be the same length as `n`.}
 }
 \value{
 The estimated performance, a real value in the range [0,1].
