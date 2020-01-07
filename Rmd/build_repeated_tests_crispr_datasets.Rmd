@@ -12,8 +12,11 @@ output:
     toc: true
     toc_float: true
 params:
-  out: "~/data/az_cruk/perept_data/ht29-iorio"
-  fdr: !r 0.1
+  root: "~/data/az_cruk/perept_data/ht29-iorio"
+  out: "~/data/az_cruk/perept_data/ht29-iorio/paired_replicates"
+  out_orig: "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure"
+  fdr: !r 0.01
+  lfc: !r 1
 ---
 
 # Setup
@@ -75,6 +78,8 @@ c908 <- read.table(file.path(path_ht29,"HT29_c908.tsv"), stringsAsFactors = F, h
   filter(sgRNA %in% c903$sgRNA)
 ```
 
+### Two replicates for 'treatments'
+
 ```{r,eval=F}
 # c903 - 6 replicates, break into 3 non-overlapping sets of 2 replicates.
 write.table(data.frame(common,c903[,4:5]), file = file.path(params$out,"ht29-perept-data-c903-1.tsv"),
@@ -111,9 +116,33 @@ write.table(data.frame(common,c908[,4:5]), file = file.path(params$out,"ht29-per
 
 ```
 
-## Creating algorithm-specific gene matrices
+### Six screens as in the original structure
 
-* Use an FDR of 0.1 to define significant genes.
+Just need to add both plasmids to each 
+
+```{r,eval=F}
+# c903.
+write.table(data.frame(common,c903[,4:9]), file = file.path(params$out_orig,"ht29-perept-data-c903.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c904.
+write.table(data.frame(common,c904[,4:6]), file = file.path(params$out_orig,"ht29-perept-data-c904.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c905.
+write.table(data.frame(common,c905[,4:12]), file = file.path(params$out_orig,"ht29-perept-data-c905.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c906.
+write.table(data.frame(common,c906[,4:9]), file = file.path(params$out_orig,"ht29-perept-data-c906.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c907.
+write.table(data.frame(common,c907[,4:6]), file = file.path(params$out_orig,"ht29-perept-data-c907.tsv"),
+            row.names = F, quote=F, sep="\t")
+# c908.
+write.table(data.frame(common,c908[,4:6]), file = file.path(params$out_orig,"ht29-perept-data-c908.tsv"),
+            row.names = F, quote=F, sep="\t")
+
+```
+
+## Creating algorithm-specific gene matrices
 
 ### Mageck
 
@@ -125,10 +154,10 @@ process_mageck_output <- function(file_list){
     screen_name <- gsub("^(.*?)\\.gene_summ.*$","\\1",tail(unlist(strsplit(file,"/")),1))
     ts <- read.table(file, header=T, stringsAsFactors = F) %>%
       arrange(id) %>%
-      mutate(neg_hit = ifelse(neg.fdr < params$fdr,1,0),
-             pos_hit = ifelse(pos.fdr < params$fdr,1,0)) %>%
       rowwise() %>%
-      mutate(neg_or_pos_hit = ifelse((neg_hit==1 || pos_hit==1),1,0)) %>%
+      mutate(neg_hit = ifelse(neg.fdr < params$fdr,1,0),
+             pos_hit = ifelse(pos.fdr < params$fdr,1,0),
+             neg_or_pos_hit = ifelse((neg_hit==1 || pos_hit==1),1,0)) %>%
       ungroup() %>%
       select(id,neg_hit,pos_hit,neg_or_pos_hit)
     if(is.null(ret)){
@@ -145,12 +174,69 @@ process_mageck_output <- function(file_list){
   return(ret)
 }
 
-files <- list.files(file.path(params$out,"output","mageck"), pattern = "gene_summary.txt$", full.names = T)
+# Paired replicates.
+files <- list.files(file.path(params$root,"output","mageck","paired_replicates"), 
+                    pattern = "gene_summary.txt$", full.names = T)
 ht29.mageck_hit_matrix <- process_mageck_output(files)
 
 ht29.mageck_neg <- ht29.mageck_hit_matrix %>%
   select(id, contains("neg_hit")) %>%
-  mutate(pos_count = rowSums(.[2:13]))
+  mutate(pos_count = rowSums(.[2:14]))
+
+# Original screen structure.
+files.orig <- list.files(file.path(params$root,"output","mageck","original_screen_structure"), 
+                    pattern = "gene_summary.txt$", full.names = T)
+ht29.mageck_hit_matrix.orig <- process_mageck_output(files.orig)
+
+ht29.mageck_neg.orig <- ht29.mageck_hit_matrix.orig %>%
+  select(id, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:7]))
+
+```
+
+### drugZ
+
+```{r}
+# Read in drugZ output files (ranked by negative hits) and process.
+process_drugz_output <- function(file_list){
+  ret <- NULL
+  for(file in file_list){
+    screen_name <- gsub("^(.*?)-drugz\\.txt$","\\1",tail(unlist(strsplit(file,"/")),1))
+    ts <- read.table(file, header=T, stringsAsFactors = F) %>%
+      arrange(GENE) %>%
+      rowwise() %>%
+      mutate(neg_hit = ifelse(fdr_synth < params$fdr,1,0)) %>%
+      ungroup() %>%
+      select(GENE,neg_hit)
+    if(is.null(ret)){
+      ret <- ts
+    }else{
+      ret <- cbind(ret, ts %>% select(-GENE))
+    }
+    # Rename columns.
+    ret %<>%
+      rename(!!paste(screen_name,".neg_hit",sep="") := neg_hit)
+  }
+  return(ret)
+}
+
+# Paired replicates.
+files.drugz <- list.files(file.path(params$root,"output","drugz","paired_replicates"), 
+                    pattern = "txt$", full.names = T)
+ht29.drugz_hit_matrix <- process_drugz_output(files.drugz)
+
+ht29.drugz_neg <- ht29.drugz_hit_matrix %>%
+  select(GENE, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:14]))
+
+# Original screen structure.
+files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure"), 
+                    pattern = "txt$", full.names = T)
+ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
+
+ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
+  select(GENE, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:7]))
 
 ```
 
