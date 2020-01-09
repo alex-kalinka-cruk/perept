@@ -28,11 +28,12 @@ suppressMessages(library(tidyr))
 suppressMessages(library(magrittr))
 suppressMessages(library(ggplot2))
 suppressMessages(library(dplyr))
+suppressMessages(library(moments))
 
 data_root <- "~/data/az_cruk"
 
 # Pan-cancer (Sanger), Bagel, and ribosomal proteins.
-ess_genes <- load("../data/ess_genes.rda")
+load("../data/ess_genes.rda")
 
 ```
 
@@ -91,6 +92,8 @@ c908 %<>% filter(sgRNA %in% sgrna_comm)
 
 common <- data.frame(c903[,1:3], c905$CRISPR_C6596666.sample)
 colnames(common)[3:4] <- c("plasmid.1","plasmid.2")
+
+c903 <- 
 ```
 
 ### Two replicates for 'treatments'
@@ -215,7 +218,7 @@ ht29.mageck_neg.orig <- ht29.mageck_hit_matrix.orig %>%
                                          ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==id],T,F),F)) %>%
   ungroup()
 
-cat("Pan cancer sensitivity:")
+cat("Pan-cancer aggregate sensitivity:")
 sum(ht29.mageck_neg.orig$pos_count[ht29.mageck_neg.orig$ess.pan_cancer])/(sum(ht29.mageck_neg.orig$ess.pan_cancer)*6)
 
 ```
@@ -272,8 +275,125 @@ ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
                                          ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==GENE],T,F),F)) %>%
   ungroup()
 
-cat("Pan cancer sensitivity:")
+cat("Pan-cancer aggregate sensitivity:")
 sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
+
+# Original screen structure - median z-score gene summary.
+files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_medzscore"), 
+                    pattern = "txt$", full.names = T)
+ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
+
+ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
+  select(GENE, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:7])) %>%
+  rowwise() %>%
+  mutate(ess.pan_cancer = ifelse(GENE%in%ess_genes$gene,
+                                 ifelse(ess_genes$PanCancer_Core_Fitness[ess_genes$gene==GENE],T,F),F),
+         ess.bagel = ifelse(GENE%in%ess_genes$gene,
+                            ifelse(ess_genes$bagel_essential[ess_genes$gene==GENE],T,F),F),
+         ess.ribosomal_proteins = ifelse(GENE%in%ess_genes$gene,
+                                         ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==GENE],T,F),F)) %>%
+  ungroup()
+
+cat("Pan-cancer aggregate sensitivity:")
+sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
+
+# Original screen structure - median z-score gene summary + median logfc.
+files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_medzscore_medfc"), 
+                    pattern = "txt$", full.names = T)
+ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
+
+ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
+  select(GENE, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:7])) %>%
+  rowwise() %>%
+  mutate(ess.pan_cancer = ifelse(GENE%in%ess_genes$gene,
+                                 ifelse(ess_genes$PanCancer_Core_Fitness[ess_genes$gene==GENE],T,F),F),
+         ess.bagel = ifelse(GENE%in%ess_genes$gene,
+                            ifelse(ess_genes$bagel_essential[ess_genes$gene==GENE],T,F),F),
+         ess.ribosomal_proteins = ifelse(GENE%in%ess_genes$gene,
+                                         ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==GENE],T,F),F)) %>%
+  ungroup()
+
+cat("Pan-cancer aggregate sensitivity:")
+sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
+
+# Original screen structure - median z-score gene summary + median logfc + no zscore.
+files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_medzscore_nozs"), 
+                    pattern = "txt$", full.names = T)
+ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
+
+ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
+  select(GENE, contains("neg_hit")) %>%
+  mutate(pos_count = rowSums(.[2:7])) %>%
+  rowwise() %>%
+  mutate(ess.pan_cancer = ifelse(GENE%in%ess_genes$gene,
+                                 ifelse(ess_genes$PanCancer_Core_Fitness[ess_genes$gene==GENE],T,F),F),
+         ess.bagel = ifelse(GENE%in%ess_genes$gene,
+                            ifelse(ess_genes$bagel_essential[ess_genes$gene==GENE],T,F),F),
+         ess.ribosomal_proteins = ifelse(GENE%in%ess_genes$gene,
+                                         ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==GENE],T,F),F)) %>%
+  ungroup()
+
+cat("Pan-cancer aggregate sensitivity:")
+sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
+
+```
+
+## Analysing disagreements
+
+```{r}
+# Add both plasmids into each normalised count data frame.
+c903 <- data.frame(common,c903[,4:ncol(c903)])
+c904 <- data.frame(common,c904[,4:ncol(c904)])
+c905 <- data.frame(common,c905[,4:ncol(c905)])
+c906 <- data.frame(common,c906[,4:ncol(c906)])
+c907 <- data.frame(common,c907[,4:ncol(c907)])
+c908 <- data.frame(common,c908[,4:ncol(c908)])
+
+# All 6 positive in Mageck, all 6 negative in drugZ.
+gm6 <- (ht29.mageck_neg.orig %>% filter(ess.pan_cancer & pos_count == 6))$id
+gd0 <- (ht29.drugz_neg.orig %>% filter(ess.pan_cancer & pos_count == 0))$GENE
+mp.dn.genes <- intersect(gm6, gd0)
+
+# All 6 positive in both.
+gd6 <- (ht29.drugz_neg.orig %>% filter(ess.pan_cancer & pos_count == 6))$GENE
+mp.dp.genes <- intersect(gm6, gd6)
+
+# Calculate log2 FC per guide (un-paired) and Sarle's bimodality index divided by the min(abs(logfc)):
+# large values indicate a small minimum logfc but a large skew (due to an outlier with low logfc).
+quantify_lowlf_skew <- function(data, screen_name){
+  # drugz steps:
+  # 1. normalize by total read count * 10e6.
+  # 2. (unpaired mode). Calculate log2fc using average across replicates.
+  nc <- ncol(data)
+  data %<>%
+    mutate(mean_plasmid = rowMeans(.[3:4]),
+           mean_treat = rowMeans(.[5:nc])) %>%
+    group_by(gene, sgRNA) %>%
+    mutate(logfc = log2(mean_treat/mean_plasmid)) %>%
+    ungroup() %>%
+    group_by(gene) %>%
+    summarise(screen = screen_name,
+              num_grnas = n(),
+              sarles_bimod = (1+skewness(logfc)^2)/kurtosis(logfc),
+              min_logfc = min(abs(logfc)),
+              max_logfc = max(abs(logfc)),
+              median_logfc = median(logfc),
+              logfc_min_norm = median_logfc/min_logfc,
+              low_lfc_skew = sarles_bimod*(1/max_logfc))
+  return(data)
+}
+
+lowlfc_skew <- rbind(quantify_lowlf_skew(c903, "c903"),
+                     quantify_lowlf_skew(c904, "c904"),
+                     quantify_lowlf_skew(c905, "c905"),
+                     quantify_lowlf_skew(c906, "c906"),
+                     quantify_lowlf_skew(c907, "c907"),
+                     quantify_lowlf_skew(c908, "c908")) %>%
+  mutate(type = case_when(gene %in% mp.dn.genes ~ "Call_Only_Mageck",
+                          gene %in% mp.dp.genes ~ "Call_Both",
+                          TRUE ~ "Other"))
 
 ```
 
