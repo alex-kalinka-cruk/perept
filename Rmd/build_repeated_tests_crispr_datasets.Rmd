@@ -93,7 +93,6 @@ c908 %<>% filter(sgRNA %in% sgrna_comm)
 common <- data.frame(c903[,1:3], c905$CRISPR_C6596666.sample)
 colnames(common)[3:4] <- c("plasmid.1","plasmid.2")
 
-c903 <- 
 ```
 
 ### Two replicates for 'treatments'
@@ -244,7 +243,7 @@ process_drugz_output <- function(file_list){
     }
     # Rename columns.
     ret %<>%
-      rename(!!paste(screen_name,".neg_hit",sep="") := neg_hit)
+      dplyr::rename(!!paste(screen_name,".neg_hit",sep="") := neg_hit)
   }
   return(ret)
 }
@@ -298,28 +297,9 @@ ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
 cat("Pan-cancer aggregate sensitivity:")
 sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
 
-# Original screen structure - median z-score gene summary + median logfc.
-files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_medzscore_medfc"), 
-                    pattern = "txt$", full.names = T)
-ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
 
-ht29.drugz_neg.orig <- ht29.drugz_hit_matrix.orig %>%
-  select(GENE, contains("neg_hit")) %>%
-  mutate(pos_count = rowSums(.[2:7])) %>%
-  rowwise() %>%
-  mutate(ess.pan_cancer = ifelse(GENE%in%ess_genes$gene,
-                                 ifelse(ess_genes$PanCancer_Core_Fitness[ess_genes$gene==GENE],T,F),F),
-         ess.bagel = ifelse(GENE%in%ess_genes$gene,
-                            ifelse(ess_genes$bagel_essential[ess_genes$gene==GENE],T,F),F),
-         ess.ribosomal_proteins = ifelse(GENE%in%ess_genes$gene,
-                                         ifelse(ess_genes$Ribosomal_Proteins[ess_genes$gene==GENE],T,F),F)) %>%
-  ungroup()
-
-cat("Pan-cancer aggregate sensitivity:")
-sum(ht29.drugz_neg.orig$pos_count[ht29.drugz_neg.orig$ess.pan_cancer])/(sum(ht29.drugz_neg.orig$ess.pan_cancer)*6)
-
-# Original screen structure - median z-score gene summary + median logfc + no zscore.
-files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_medzscore_nozs"), 
+# Original screen structure - DESeq2 lfc shrinkage ashr.
+files.drugz.orig <- list.files(file.path(params$root,"output","drugz","original_screen_structure","cleanr_lfc_ashr_deseq2-medz"), 
                     pattern = "txt$", full.names = T)
 ht29.drugz_hit_matrix.orig <- process_drugz_output(files.drugz.orig)
 
@@ -396,5 +376,91 @@ lowlfc_skew <- rbind(quantify_lowlf_skew(c903, "c903"),
                           TRUE ~ "Other"))
 
 ```
+
+## Using logfc EB shrinkage in `DESeq2`
+
+```{r}
+run_deseq2_lfc_shrink <- function(counts, shrink_method){
+  # Prep for DESeq2.
+  counts <- counts %>%
+    select(-gene) %>%
+    mutate_if(is.numeric, round)
+  rownames(counts) <- counts$sgRNA
+  counts %<>% select(-sgRNA)
+  # Treatment info.
+  ns <- ncol(counts)
+  samp <- data.frame(sample = colnames(counts), treatment = c("ctrl","ctrl",rep("drug",ns-2)), stringsAsFactors = F)
+  data <- DESeqDataSetFromMatrix(counts, colData=samp, design=~treatment)
+  dds <- DESeq(data)
+  # EB shrinkage of logFC.
+  slf <- lfcShrink(dds, coef="treatment_drug_vs_ctrl", type=shrink_method)
+  slf.df <- as.data.frame(slf@listData) %>%
+    mutate(sgRNA=slf@rownames,
+           gene = gsub("^(.*?)_.*$","\\1",sgRNA)) %>%
+    arrange(log2FoldChange)
+  return(slf.df)
+}
+
+# Prep for input into 'drugz.py'.
+prep_dz <- function(data){
+  data %<>%
+    select(gene,sgRNA,log2FoldChange) %>%
+    dplyr::rename(GENE = gene, zscore = log2FoldChange)
+  return(data)
+}
+
+c903.slf.ashr <- run_deseq2_lfc_shrink(c903, "ashr")
+c904.slf.ashr <- run_deseq2_lfc_shrink(c904, "ashr")
+c905.slf.ashr <- run_deseq2_lfc_shrink(c905, "ashr")
+c906.slf.ashr <- run_deseq2_lfc_shrink(c906, "ashr")
+c907.slf.ashr <- run_deseq2_lfc_shrink(c907, "ashr")
+c908.slf.ashr <- run_deseq2_lfc_shrink(c908, "ashr")
+
+write.table(prep_dz(c903.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c903-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+write.table(prep_dz(c904.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c904-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+write.table(prep_dz(c905.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c905-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+write.table(prep_dz(c906.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c906-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+write.table(prep_dz(c907.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c907-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+write.table(prep_dz(c908.slf.ashr), "~/data/az_cruk/perept_data/ht29-iorio/original_screen_structure/lfc_ashr_deseq2/c908-lfc-deseq2.txt",
+            row.names=F, quote=F, sep="\t")
+
+```
+
+```{r}
+# Read in drugZ output files (ranked by negative hits) and process.
+process_deseq2_output <- function(...){
+  data_list <- list(...)
+  names <- names(data_list)
+  ret <- NULL
+  for(i in 1:length(data_list)){
+    screen_name <- names[i]
+    ts <- data_list[[i]] %>%
+      arrange(gene) %>%
+      group_by(gene) %>%
+      summarise(neg_hit = ifelse((median(padj) < params$fdr && median(log2FoldChange) < 0),1,0)) %>%
+      ungroup()
+    if(is.null(ret)){
+      ret <- ts
+    }else{
+      ret <- cbind(ret, ts %>% dplyr::select(-gene))
+    }
+    # Rename columns.
+    ret %<>%
+      dplyr::rename(!!paste(screen_name,".neg_hit",sep="") := neg_hit)
+  }
+  return(ret)
+}
+
+ht29.deseq2_hit_matrix.orig <- process_deseq2_output(c903.slf.ashr, c904.slf.ashr, c905.slf.ashr, c906.slf.ashr, 
+                                                    c907.slf.ashr, c908.slf.ashr)
+
+```
+
+
 
 
